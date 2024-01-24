@@ -2,7 +2,7 @@
 # Reward-Free Curricula for Training Robust World Models
 ![](https://github.com/marc-rigter/waker/blob/main/terrain_walker.gif)
 
-Official code to reproduce experiments from the ICLR 2024 paper. Proposes the algorithm *WAKER: Weighted Acquisition of Knowledge across Environments for Robustness*.
+Official code to reproduce experiments from the ICLR 2024 paper [Reward-Free Curricula for Training Robust World Models](https://openreview.net/forum?id=eCGpNGDeNu). Implements the algorithm *WAKER: Weighted Acquisition of Knowledge across Environments for Robustness*, as well as the baselines presented in the paper.
 
 ## Setup
 
