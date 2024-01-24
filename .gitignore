@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.egg-info
+*.sif
+*.jpeg
+*.png
+*.pkl
+*.txt
+dist
+MUJOCO_LOG.TXT
+/wandb
+/logs

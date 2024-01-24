@@ -1,0 +1,231 @@
+defaults:
+  wandb: True
+  group: "default"
+
+  # Train Script
+  logdir: /dev/null
+  policy_logdir: /dev/null
+  seed: 0
+  task: dmc_walker_walk
+  observation: image
+  envs: 1
+  render_size: [64, 64]
+  dmc_camera: -1
+  atari_grayscale: True
+  time_limit: 0
+  action_repeat: 1
+  log_every: 1e4
+  eval_every: 4e5
+  eval_mode: "standard"
+  eval_eps: 1
+  prefill: 100000
+  pretrain: 1
+  train_every: 8
+  train_steps: 1
+  steps: 10e6
+  expl_until: 10e6
+  replay: {capacity: 3e6, ongoing: False, minlen: 50, maxlen: 50, prioritize_ends: True}
+  dataset: {batch: 16, length: 50}
+  log_keys_video: ['image']
+  log_keys_sum: '^$'
+  log_keys_mean: '^$'
+  log_keys_max: '^$'
+  precision: 16
+  jit: True
+
+  # Agent
+  clip_rewards: identity
+  expl_noise: 0.0
+  eval_noise: 0.0
+  eval_state_mean: False
+
+  # World Model
+  grad_heads: [decoder, reward, discount]
+  pred_discount: True
+  rssm: {ensemble: 1, hidden: 1024, deter: 1024, stoch: 32, discrete: 32, act: elu, norm: none, std_act: sigmoid2, min_std: 0.1}
+  encoder: {mlp_keys: '.*', cnn_keys: '.*', act: elu, norm: none, cnn_depth: 48, cnn_kernels: [4, 4, 4, 4], mlp_layers: [400, 400, 400, 400]}
+  decoder: {mlp_keys: '.*', cnn_keys: '.*', act: elu, norm: none, cnn_depth: 48, cnn_kernels: [5, 5, 6, 6], mlp_layers: [400, 400, 400, 400]}
+  reward_head: {layers: 4, units: 400, act: elu, norm: none, dist: mse}
+  discount_head: {layers: 4, units: 400, act: elu, norm: none, dist: binary}
+  loss_scales: {kl: 1.0, reward: 1.0, discount: 1.0, proprio: 1.0}
+  kl: {free: 0.0, forward: False, balance: 0.8, free_avg: True}
+  model_opt: {opt: adam, lr: 1e-4, eps: 1e-5, clip: 100, wd: 1e-6}
+
+  # Actor Critic
+  actor: {layers: 4, units: 400, act: elu, norm: none, dist: auto, min_std: 0.1}
+  critic: {layers: 4, units: 400, act: elu, norm: none, dist: mse}
+  actor_opt: {opt: adam, lr: 8e-5, eps: 1e-5, clip: 100, wd: 1e-6}
+  critic_opt: {opt: adam, lr: 2e-4, eps: 1e-5, clip: 100, wd: 1e-6}
+  discount: 0.99
+  discount_lambda: 0.95
+  imag_horizon: 15
+  actor_grad: auto
+  actor_grad_mix: 0.1
+  actor_ent: 2e-3
+  slow_target: True
+  slow_target_update: 100
+  slow_target_fraction: 1
+  slow_baseline: True
+  reward_norm: {momentum: 1.0, scale: 1.0, eps: 1e-8}
+
+  # Action exploration
+  expl_behavior: greedy
+  expl_intr_scale: 50.0
+  expl_extr_scale: 0.0
+  expl_opt: {opt: adam, lr: 3e-4, eps: 1e-5, clip: 100, wd: 1e-6}
+  expl_head: {layers: 4, units: 400, act: elu, norm: none, dist: mse}
+  expl_reward_norm: {momentum: 1.0, scale: 1.0, eps: 1e-8}
+  disag_target: feat
+  disag_log: False
+  disag_models: 10
+  disag_offset: 1
+  disag_action_cond: True
+  expl_model_loss: kl
+
+  # Environment exploration
+  env_sampler: "WAKER" 
+  env_sampler_params: {sample_uncert: "ensemble_magnitude", temp: 1.0, random_prob: 0.2, combined: False}
+
+CleanUp:
+  task: safetygym_pointcleanup_all
+  decoder: {mlp_keys: '.*', cnn_keys: 'image'}
+  encoder: {mlp_keys: '.*', cnn_keys: 'image'}
+  time_limit: 1500
+  action_repeat: 2
+  observation: image
+  pred_discount: False
+  replay.prioritize_ends: False
+  grad_heads: [decoder, reward]
+  rssm: {hidden: 600, deter: 600}
+  model_opt.lr: 2e-4
+  actor_opt.lr: 1e-4
+  critic_opt.lr: 1e-4
+  actor_ent: 1e-3
+  loss_scales.kl: 3.0
+  kl.free: 1.0
+  actor_grad: dynamics
+  eval_mode: "both"
+  eval_eps: 100
+
+CarCleanUp:
+  task: safetygym_carcleanup_all
+  decoder: {mlp_keys: '.*', cnn_keys: 'image'}
+  encoder: {mlp_keys: '.*', cnn_keys: 'image'}
+  time_limit: 1500
+  action_repeat: 2
+  observation: image
+  pred_discount: False
+  replay.prioritize_ends: False
+  grad_heads: [decoder, reward]
+  rssm: {hidden: 600, deter: 600}
+  model_opt.lr: 2e-4
+  actor_opt.lr: 1e-4
+  critic_opt.lr: 1e-4
+  actor_ent: 1e-3
+  loss_scales.kl: 3.0
+  kl.free: 1.0
+  actor_grad: dynamics
+  eval_mode: "both"
+  eval_eps: 100
+
+TerrainWalker:
+  task: dmc_terrainwalker_all
+  encoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  decoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  action_repeat: 2
+  pred_discount: False
+  replay.prioritize_ends: False
+  grad_heads: [decoder, reward]
+  rssm: {hidden: 600, deter: 600}
+  model_opt.lr: 3e-4
+  actor_opt.lr: 1e-4
+  critic_opt.lr: 1e-4
+  actor_ent: 1e-4
+  kl.free: 1.0
+  actor_grad: dynamics
+  eval_mode: "both"
+  eval_eps: 100
+
+TerrainHopper:
+  task: dmc_terrainhopper_all
+  encoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  decoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  action_repeat: 2
+  pred_discount: False
+  replay.prioritize_ends: False
+  grad_heads: [decoder, reward]
+  rssm: {hidden: 600, deter: 600}
+  model_opt.lr: 3e-4
+  actor_opt.lr: 1e-4
+  critic_opt.lr: 1e-4
+  actor_ent: 1e-4
+  kl.free: 1.0
+  actor_grad: dynamics
+  eval_mode: "both"
+  eval_eps: 100
+
+Combined:
+  task: combined_terrainwalker_all-pointcleanup_all
+  decoder: {mlp_keys: '.*', cnn_keys: 'image'}
+  encoder: {mlp_keys: '.*', cnn_keys: 'image'}
+  time_limit: 1500
+  action_repeat: 2
+  observation: image
+  pred_discount: False
+  replay.prioritize_ends: False
+  grad_heads: [decoder, reward]
+  rssm: {hidden: 600, deter: 600}
+  model_opt.lr: 2e-4
+  actor_opt.lr: 1e-4
+  critic_opt.lr: 1e-4
+  actor_ent: 1e-3
+  loss_scales.kl: 3.0
+  kl.free: 1.0
+  actor_grad: dynamics
+  eval_mode: "both"
+  eval_eps: 100
+  steps: 20e6
+  expl_until: 20e6
+  prefill: 200000
+  train_every: 10
+
+Plan2Explore:
+  expl_behavior: Plan2Explore 
+  grad_heads: [decoder]
+
+RandomExploration:
+  expl_behavior: RandomExplore 
+  grad_heads: [decoder]
+
+WAKER-M:
+  env_sampler: "WAKER" 
+  env_sampler_params: {sample_uncert: "ensemble_magnitude", temp: 1.0, random_prob: 0.2}
+
+WAKER-R:
+  env_sampler: "WAKER" 
+  env_sampler_params: {sample_uncert: "ensemble_reduction", temp: 0.5, random_prob: 0.2}
+
+DR:
+  env_sampler: "Random"
+
+HardestEnvOracle:
+  env_sampler: "HardestEnvOracle" 
+  prefill: 500
+
+ReweightingOracle:
+  env_sampler: "ReweightingOracle" 
+  prefill: 500
+
+GradualExpansion:
+  env_sampler: "GradualExpansion" 
+  prefill: 500
+
+test:
+  action_repeat: 2
+  prefill: 500
+  eval_every: 50e3
+  pretrain: 0
+  eval_eps: 2
+  eval_mode: "standard"
+  log_every: 1e3
+  disag_models: 5
